@@ -2,20 +2,19 @@ import face_recognition
 import cv2
 import numpy as np
 import csv
-import os
+import sys
 from datetime import datetime
+import encode
+import os
 
-known_face_encodings = []
-known_face_names = []
+cache_file = "known_face_encodings.npy"
+if not os.path.exists(cache_file):
+    encode.load_known_faces()
+
+known_face_encodings = np.load(
+    "known_face_encodings.npy", allow_pickle=True)
+known_face_names = np.load("known_face_names.npy", allow_pickle=True)
 attendance_list = []
-
-
-def load_known_faces():
-    for filename in os.listdir("faces"):
-        image = face_recognition.load_image_file(f"faces/{filename}")
-        encoding = face_recognition.face_encodings(image)[0]
-        known_face_encodings.append(encoding)
-        known_face_names.append(filename.split(".")[0])
 
 
 def encode_faces(rgb_small_frame, face_locations):
@@ -60,9 +59,16 @@ def draw_face_locations(frame, top, right, bottom, left, name):
 
 
 def main():
+    reencode = input("Re-encode faces? (y/n): ")
+    if reencode == "y":
+        encode.load_known_faces()
+    elif reencode == "n":
+        pass
+    else:
+        print("Invalid input")
+        sys.exit(1)
     face_encodings = []
     video_capture = cv2.VideoCapture(0)
-    load_known_faces()
 
     while True:
         _, frame = video_capture.read()
@@ -79,7 +85,7 @@ def main():
             draw_face_locations(frame, top, right, bottom, left, name)
             added_to_attendance(name)
 
-        cv2.imshow('Video', frame)
+        cv2.imshow('FaceRecSys', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

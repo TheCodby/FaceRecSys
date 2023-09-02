@@ -1,2 +1,5 @@
 /faces
 *.csv
+*.jpg
+*.jpeg
+*.npy
